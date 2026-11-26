@@ -49,7 +49,7 @@ MOCK_VISION=true
 MOCK_GENERATION=true
 ```
 
-The first two flags retain the existing in-memory storage and synthetic speech/vision behavior. With generation disabled, a real Foundry model is still required. Use one API worker; the in-memory state is not shared across processes. The browser preview uses a CDN; credential-free backend testing does not imply a fully disconnected browser.
+The first two flags retain the existing in-memory storage and synthetic speech/vision behavior. With generation disabled, a real Foundry model is still required. Use one API worker; the in-memory state is not shared across processes. The browser displays a literal Markdown preview without a third-party CDN. Dependency installation still requires network access.
 
 ---
 

@@ -36,6 +36,12 @@ async def create_job(file: UploadFile = File(...)):
     if not file.filename:
         raise HTTPException(status_code=400, detail="No filename provided.")
 
+    # Keep the client filename a single path component on Windows and POSIX.
+    if ("/" in file.filename or "\\" in file.filename or ":" in file.filename
+            or any(ord(char) < 32 or ord(char) == 127 for char in file.filename)
+            or len(file.filename) > 200):
+        raise HTTPException(status_code=400, detail="Invalid filename.")
+
     ext = "." + file.filename.rsplit(".", 1)[-1].lower() if "." in file.filename else ""
     if ext not in _ALLOWED_EXTENSIONS:
         raise HTTPException(
