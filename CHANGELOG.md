@@ -1,5 +1,14 @@
 # Changelog
 
+## Unreleased — proposed v0.2.0
+
+- Validate parsed uploads and canonical job IDs; return generic API failures.
+- Bound FFmpeg subprocess duration, audio/frame sampling and embedded image size; isolate CLI temporary frames.
+- Limit process-local admitted jobs, mock history and result writes.
+- Add synthetic bilingual evaluator self-tests with expected negative cases and repeatable JSON evidence.
+- Pin Linux Python 3.11 runtime package versions and add selected source checks.
+- API now returns 429 at local capacity; old mock results may be evicted. Media over configured fixed budgets is rejected. These are experimental local safeguards, not production isolation or live-model evaluation.
+
 ## v0.1.0 — Experimental Community Release
 
 Initial independently distributed Apache-2.0 edition of the video-to-documentation proof of value.
