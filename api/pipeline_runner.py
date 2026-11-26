@@ -14,7 +14,6 @@ import os
 import pathlib
 import shutil
 import tempfile
-import traceback
 
 from api import job_store
 from api.models import JobStatus, JobStep
@@ -26,11 +25,8 @@ from src.transcribe import format_transcript, transcribe_file
 
 # In-memory result cache used when MOCK_TRANSCRIPTION=true AND MOCK_VISION=true.
 # Avoids the need for Azure Storage during local development.
-_MOCK_RESULTS: dict[str, str] = {}
-
-
 def get_mock_result(job_id: str) -> str | None:
-    return _MOCK_RESULTS.get(job_id)
+    return job_store.get_mock_result(job_id)
 
 
 def _full_mock() -> bool:
@@ -43,11 +39,12 @@ def _full_mock() -> bool:
 def run_pipeline(job_id: str) -> None:
     """Execute the full pipeline for *job_id*. Designed to run in a thread."""
     print(f"[pipeline] Job {job_id}: thread started")
-    tmp_dir = tempfile.mkdtemp(prefix=f"v2doc_{job_id[:8]}_")
+    tmp_dir = None
 
     try:
+        tmp_dir = tempfile.mkdtemp(prefix=f"v2doc_{job_id[:8]}_")
         state = job_store.get_job(job_id)
-        print(f"[pipeline] Job {job_id}: video={state.video_filename} mock={_full_mock()}")
+        print(f"[pipeline] Job {job_id}: mock={_full_mock()}")
 
         # ── Download video from Blob to temp dir ──────────────────────────────
         video_path = str(pathlib.Path(tmp_dir) / state.video_filename)
@@ -87,23 +84,23 @@ def run_pipeline(job_id: str) -> None:
 
         # ── Persist result ────────────────────────────────────────────────────
         if _full_mock():
-            _MOCK_RESULTS[job_id] = markdown
+            job_store.save_mock_result(job_id, markdown)
         else:
             job_store.save_result(job_id, markdown)
         job_store.update_job(job_id, status=JobStatus.DONE, step=JobStep.DONE)
         print(f"[pipeline] Job {job_id}: DONE")
 
-    except Exception as exc:
-        error_detail = f"{type(exc).__name__}: {exc}\n{traceback.format_exc()}"
-        print(f"[pipeline] Job {job_id} FAILED: {error_detail}")
+    except Exception:
+        print(f"[pipeline] Job {job_id} FAILED")
         try:
             job_store.update_job(
                 job_id,
                 status=JobStatus.FAILED,
-                error=f"{type(exc).__name__}: {exc}",
+                error="Pipeline failed.",
             )
-        except Exception as update_exc:
-            print(f"[pipeline] Job {job_id}: could not write FAILED state: {update_exc}")
+        except Exception:
+            print(f"[pipeline] Job {job_id}: could not write FAILED state")
 
     finally:
-        shutil.rmtree(tmp_dir, ignore_errors=True)
+        if tmp_dir is not None:
+            shutil.rmtree(tmp_dir, ignore_errors=True)

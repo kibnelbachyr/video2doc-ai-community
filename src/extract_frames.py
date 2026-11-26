@@ -33,26 +33,34 @@ def extract_frames(video_path: str, output_dir: str = "frames") -> list[dict]:
         return []
 
     frames_per_minute = int(os.environ.get("FRAMES_PER_MINUTE", "12"))
+    if not 1 <= frames_per_minute <= 60:
+        raise ValueError('FRAMES_PER_MINUTE must be between 1 and 60')
     interval_sec = 60.0 / frames_per_minute
 
     out_dir = pathlib.Path(output_dir)
     out_dir.mkdir(parents=True, exist_ok=True)
 
+    if any(out_dir.glob('frame_*.png')):
+        raise ValueError('Frame output directory contains existing frames')
     pattern = str(out_dir / "frame_%06d.png")
 
     cmd = [
-        "ffmpeg", "-y",
+        "ffmpeg", "-nostdin", "-hide_banner", "-loglevel", "error", "-y",
+        "-protocol_whitelist", "file,pipe",
         "-i", video_path,
-        "-vf", f"fps=1/{interval_sec:.6f}",
+        "-vf", f"fps=1/{interval_sec:.6f},scale=1280:720:force_original_aspect_ratio=decrease",
+        "-frames:v", "121",
         "-vsync", "vfr",
         pattern,
     ]
 
-    result = subprocess.run(cmd, capture_output=True, text=True)
+    result = subprocess.run(cmd, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, timeout=120)
     if result.returncode != 0:
-        raise RuntimeError(f"ffmpeg frame extraction failed:\n{result.stderr}")
+        raise RuntimeError("ffmpeg frame extraction failed")
 
     saved = sorted(out_dir.glob("frame_*.png"))
+    if len(saved) > 120:
+        raise ValueError("Frame count exceeds 120; reduce sampling rate or input duration")
     frames = [
         {
             "path": str(p),

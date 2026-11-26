@@ -33,7 +33,7 @@ Content-Type: `multipart/form-data`
 
 | Field | Type | Required | Description |
 |-------|------|----------|-------------|
-| `file` | binary | Yes | Video file. Allowed extensions: `.mp4`, `.mov`, `.avi`, `.mkv`, `.webm`, `.wmv`. Max 500 MB. |
+| `file` | binary | Yes | Video file. Allowed extensions: `.mp4`, `.mov`, `.avi`, `.mkv`, `.webm`, `.wmv`. Max 500 MiB (both mock and live modes, after multipart parsing). |
 
 **Example (curl)**
 ```bash
@@ -54,9 +54,11 @@ curl -X POST https://<api>/api/jobs \
 
 | Status | Condition |
 |--------|-----------|
-| `400` | No filename provided |
-| `413` | File exceeds 500 MB |
+| `400` | Invalid filename or empty live upload |
+| `413` | File exceeds 500 MiB |
 | `415` | Unsupported file extension |
+| `429` | Both process-local job slots occupied |
+| `503` | Job initialization failed |
 
 ---
 
@@ -109,7 +111,7 @@ When a job fails (`status: "failed"`), `error` contains a short description:
 ```json
 {
   "status": "failed",
-  "error":  "RuntimeError: ffmpeg audio extraction failed: ...",
+  "error":  "Pipeline failed.",
   "result_url": null
 }
 ```
@@ -155,7 +157,7 @@ ContosoCRM version 3.2: the Dashboard, Smart Filters, and the Export Wizard.
 |--------|-----------|
 | `404` | Job ID not found |
 | `409` | Job is still processing (`status != "done"`) |
-| `422` | Job failed — error detail included in response |
+| `422` | Job failed — generic error only |
 | `500` | Result blob missing from storage (internal error) |
 
 ---
@@ -210,6 +212,10 @@ echo "Saved to documentation.md"
 
 ---
 
+## Upload and error boundary
+
+The endpoint checks the parsed file size and reads live uploads in bounded chunks, rejecting oversize data before creating a job. Mock uploads are also subject to the limit. Multipart parsing occurs before this check; a server/proxy body limit and authentication are still required for deployment. Live uploads are still held in memory up to the application limit. Job lookup accepts canonical UUID strings only. API failure responses are generic; other pipeline/provider logging is not comprehensively sanitized.
+
 ## CORS
 
 The API allows all origins (`*`) in the current PoC configuration. In
@@ -223,3 +229,7 @@ app.add_middleware(
     ...
 )
 ```
+
+## Local resource limits
+
+Two concurrent admitted jobs per process; no waiting queue. Mock history retains up to 32 records, evicting a terminal record and its result when full; active records are not evicted. Result writes are limited to 20 MiB UTF-8. These are process-local controls, not distributed quotas, end-to-end timeout, authentication or a bound on pre-parsed multipart traffic.
