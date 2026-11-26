@@ -9,7 +9,7 @@
  *  3. Poll GET /api/jobs/{job_id} every POLL_INTERVAL ms.
  *  4. On each poll, update the step progress UI.
  *  5. When status == "done", fetch /api/jobs/{job_id}/result
- *     and render as Markdown with marked.js.
+ *     and display a safe text preview.
  *  6. User can download the raw .md file or copy to clipboard.
  *
  * All API calls use relative paths (/api/...).
@@ -215,8 +215,8 @@ async function loadResult(jobId) {
     return;
   }
 
-  // Render markdown
-  markdownPreview.innerHTML = marked.parse(rawMarkdown);
+  // Model output is untrusted; do not interpret it as HTML.
+  renderMarkdownPreview(markdownPreview, rawMarkdown);
 
   // Set download filename
   const baseName = (selectedVideoFile?.name || 'documentation').replace(/\.[^.]+$/, '');

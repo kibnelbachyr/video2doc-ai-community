@@ -7,7 +7,7 @@ This is a proof-of-value project, not a production-ready service. This checklist
 | Gate | Acceptance evidence | Status |
 | --- | --- | --- |
 | P0 — Publication boundary | Owner confirms rights to publish code, documentation and examples; review current and historical content for customer material, secrets and personal data; decide licensing explicitly | Open |
-| P1 — Reproducible local run | Fresh checkout works with documented prerequisites and a synthetic video; mock and live-provider modes are clearly distinguished; no cloud credentials needed for the offline smoke test | Open |
+| P1 — Reproducible local run | CI-verified credential-free synthetic API and CLI run; no real media is decoded in mock mode. Real synthetic-video decoding remains unverified | Offline baseline verified; real-media run open |
 | P2 — Automated verification | CI runs formatting/lint, unit tests and offline smoke test on pull requests; dependency and secret scans enabled; failures block release | Open |
 | P3 — Architectural evidence | Document job lifecycle, trust boundaries, failure modes, retry and idempotency decisions, and deployment assumptions; link ADRs from architecture docs | Open |
 | P4 — AI evaluation | Version a synthetic French/English fixture set and rubric; evaluate factual fidelity, completeness, language consistency, image alignment and unsupported claims; record model/prompt versions and human review | Open |
@@ -32,3 +32,7 @@ This is a proof-of-value project, not a production-ready service. This checklist
 ## Definition of done
 
 P0–P5 have documented evidence, known limitations are explicit, and a new reader can reproduce the baseline without relying on private infrastructure. The existing production readiness plan remains the source of truth for enterprise deployment milestones.
+
+## Verified offline baseline
+
+[Initial CI run](https://github.com/kibnelbachyr/video2doc-ai-community/actions/runs/45763217620) passed five tests on Python 3.11, with Python socket connections and Blob calls guarded during tests. Dependency installation is online. This is not a real-media, LLM-quality or production-security validation. The proposed literal-text preview and filename guard require their own passing CI. Deployment workflows are manual-only.

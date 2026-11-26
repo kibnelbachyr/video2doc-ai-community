@@ -71,6 +71,13 @@ class OfflineTests(unittest.TestCase):
             self.assertEqual(client.get("/api/jobs/unknown").status_code, 404)
             self.assertEqual(client.get("/api/jobs/unknown/result").status_code, 404)
 
+    def test_api_rejects_path_like_filename(self):
+        with TestClient(app) as client:
+            with patch("api.routers.jobs.job_store.create_job", side_effect=AssertionError("must reject before state creation")):
+                for name in ("../escape.mp4", "/tmp/escape.mp4", "C:escape.mp4"):
+                    response = client.post("/api/jobs", files={"file": (name, b"placeholder", "video/mp4")})
+                    self.assertEqual(response.status_code, 400, name)
+
     def test_live_dispatch_uses_sdk_stub(self):
         with patch.dict(os.environ, {"MOCK_GENERATION": "false", "AZURE_OPENAI_ENDPOINT": "https://example.invalid", "AZURE_OPENAI_KEY": "test-only"}):
             with patch("src.generate_docs.AzureOpenAI") as constructor:

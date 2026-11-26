@@ -40,7 +40,7 @@ It is served by **Azure Static Web Apps** in production and by the FastAPI
 │                                                       │
 │  #result-card     📄 Documentation générée           │
 │                   [Copier] [Télécharger .md]          │
-│                   [Markdown rendered inline]          │
+│                   [Raw Markdown preview]            │
 │                                                       │
 ├───────────────────────────────────────────────────────┤
 │  footer           Built using: Azure AI Speech · …   │
@@ -116,7 +116,7 @@ When `status == "done"`:
 clearInterval(pollTimer)
 setStepState('done', 'done')
 GET /api/jobs/{id}/result  →  raw Markdown text
-markdownPreview.innerHTML = marked.parse(rawMarkdown)
+renderMarkdownPreview(markdownPreview, rawMarkdown)
 resultCard.style.display = 'block'
 resultCard.scrollIntoView(...)
 ```
@@ -179,20 +179,9 @@ both the UI and the API.
 
 ---
 
-## Markdown rendering
+## Safe Markdown preview
 
-The result is rendered using **marked.js** (loaded from a CDN):
-
-```html
-<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
-```
-
-```javascript
-markdownPreview.innerHTML = marked.parse(rawMarkdown);
-```
-
-The `#markdown-preview` div has custom CSS for headings, tables, code blocks,
-and blockquotes styled to match the Azure design language (blues, greys).
+The model-generated result is untrusted. The browser uses `renderMarkdownPreview` from `ui/preview.js` to assign literal text via `textContent`, not HTML. It does not interpret links, images, scripts or HTML and does not require the former Markdown CDN. The preview is capped at 100,000 UTF-16 code units; the complete original Markdown remains available via copy/download. Treat downloaded Markdown as untrusted in external viewers as well. Rich rendering is deferred until a reviewed sanitization policy and browser tests exist.
 
 ---
 

@@ -31,7 +31,7 @@ as the video (French or English).
 The browser uploads a video file. The API spawns a background thread that runs
 the five-step pipeline, updating a job state document in Blob Storage after each step.
 The browser polls every 2 seconds and shows live progress; when the job completes it
-renders the generated Markdown inline and offers download.
+displays a safe plain-text Markdown preview and offers full download.
 
 ---
 
@@ -106,7 +106,7 @@ video2doc-ai/
 ├── ui/                     ← Static Web App (vanilla JS, no framework)
 │   ├── index.html          #   SPA shell (French UI)
 │   ├── style.css           #   Styles
-│   ├── app.js              #   Upload → poll → render Markdown
+│   ├── app.js              #   Upload → poll → preview Markdown
 │   └── staticwebapp.config.json
 │
 ├── infra/                  ← Azure Bicep IaC
@@ -138,7 +138,7 @@ pip install -r api/requirements.txt
 MOCK_TRANSCRIPTION=true MOCK_VISION=true MOCK_GENERATION=true \
   uvicorn api.main:app --reload --port 8000
 
-# Open http://localhost:8000 (one worker; browser Markdown preview uses a CDN)
+# Open http://localhost:8000 (one worker in mock mode)
 ```
 
 ---

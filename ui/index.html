@@ -13,8 +13,6 @@
   -->
   <script src="config.js" onerror="window.API_BASE_URL=''"></script>
 
-  <!-- marked.js pour le rendu Markdown -->
-  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 </head>
 <body>
 
@@ -94,6 +92,7 @@
       <button class="btn-secondary" id="copy-btn">Copier le Markdown</button>
       <button class="btn-primary"   id="download-btn" data-filename="documentation.md">⬇ Télécharger .md</button>
     </div>
+    <p> Aperçu du Markdown brut — téléchargez le fichier pour consulter le document complet.</p>
     <div id="markdown-preview"></div>
   </section>
 
@@ -110,6 +109,7 @@
   Azure Blob Storage
 </footer>
 
+<script src="preview.js"></script>
 <script src="app.js"></script>
 </body>
 </html>
