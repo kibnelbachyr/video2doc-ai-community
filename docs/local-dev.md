@@ -137,15 +137,16 @@ uvicorn with 2 workers on port 8000.
 
 | Package | Version | Purpose |
 |---------|---------|---------|
-| `fastapi` | 0.111.0 | Web framework |
+| `fastapi` | 0.165.0 | Web framework |
+| `starlette` | 1.10.0 | Explicit framework dependency pin |
 | `uvicorn[standard]` | 0.30.1 | ASGI server |
-| `python-multipart` | 0.0.9 | Multipart file upload parsing |
+| `python-multipart` | 0.0.34 | Multipart file upload parsing |
 | `aiofiles` | 23.2.1 | Required by FastAPI `StaticFiles` |
 | `azure-storage-blob` | 12.19.1 | Blob Storage SDK |
 | `azure-ai-vision-imageanalysis` | 1.0.0 | Vision 4.0 Image Analysis SDK |
 | `openai` | ≥1.50.0 | Azure AI Foundry / GPT-4.1 client |
-| `python-dotenv` | 1.0.1 | `.env` file loading |
-| `requests` | 2.31.0 | Speech REST API HTTP calls |
+| `python-dotenv` | 1.2.4 | `.env` file loading |
+| `requests` | 2.34.2 | Speech REST API HTTP calls |
 
 > `openai>=1.50.0` is required. Earlier versions (e.g. 1.30.x) fail with
 > `TypeError: Client.__init__() got an unexpected keyword argument 'proxies'`
@@ -158,8 +159,8 @@ uvicorn with 2 workers on port 8000.
 | `azure-storage-blob` | 12.19.1 | Blob Storage SDK (`--upload` flag) |
 | `azure-ai-vision-imageanalysis` | 1.0.0 | Vision 4.0 Image Analysis SDK |
 | `openai` | ≥1.50.0 | Azure AI Foundry / GPT-4.1 client |
-| `python-dotenv` | 1.0.1 | `.env` file loading |
-| `requests` | 2.31.0 | Speech REST API HTTP calls |
+| `python-dotenv` | 1.2.4 | `.env` file loading |
+| `requests` | 2.34.2 | Speech REST API HTTP calls |
 
 The CLI skips the web-framework packages (`fastapi`, `uvicorn`,
 `python-multipart`, `aiofiles`) since `pipeline.py` runs no server. Both
