@@ -26,7 +26,8 @@ Flags:
 import argparse
 import os
 import pathlib
-import shutil
+import tempfile
+from contextlib import nullcontext
 import sys
 
 from dotenv import load_dotenv
@@ -54,7 +55,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--frames",
         default="frames",
-        help="Directory to store extracted frames (default: frames/)",
+        help="Parent directory for isolated temporary frames (default: frames/)",
     )
     return parser.parse_args()
 
@@ -100,33 +101,34 @@ def main() -> None:
     transcript_segments = transcribe_file(str(video_path))
     transcript = format_transcript(transcript_segments)
 
-    # ── Step 3: Extract frames ────────────────────────────────────────────────
-    print("\n[2/4] Extracting frames …")
-    frames = extract_frames(str(video_path), output_dir=args.frames)
+    # Only delete our own unique temporary directory, never the caller's parent.
+    mock_vision = os.environ.get("MOCK_VISION", "false").lower() == "true"
+    if not mock_vision:
+        pathlib.Path(args.frames).mkdir(parents=True, exist_ok=True)
+    context = nullcontext(args.frames) if mock_vision else tempfile.TemporaryDirectory(prefix="v2doc-", dir=args.frames)
+    with context as frames_dir:
+        # ── Step 3: Extract frames ────────────────────────────────────────────────
+        print("\n[2/4] Extracting frames …")
+        frames = extract_frames(str(video_path), output_dir=frames_dir)
 
-    # ── Step 4: Analyse frames with Vision ───────────────────────────────────
-    print("\n[3/4] Analysing frames with Azure AI Vision …")
-    vision_results = analyze_frames(frames)
-    image_context = format_image_context(vision_results)
+        # ── Step 4: Analyse frames with Vision ───────────────────────────────────
+        print("\n[3/4] Analysing frames with Azure AI Vision …")
+        vision_results = analyze_frames(frames)
+        image_context = format_image_context(vision_results)
 
-    # ── Step 5: Generate documentation ───────────────────────────────────────
-    print("\n[4/4] Generating documentation …")
-    markdown = generate_documentation(transcript, image_context)
-    if os.environ.get("MOCK_VISION", "false").lower() != "true":
-        markdown = embed_frame_images(markdown, args.frames)
+        # ── Step 5: Generate documentation ───────────────────────────────────────
+        print("\n[4/4] Generating documentation …")
+        markdown = generate_documentation(transcript, image_context)
+        if os.environ.get("MOCK_VISION", "false").lower() != "true":
+            markdown = embed_frame_images(markdown, frames_dir)
 
-    # ── Step 6: Save output ───────────────────────────────────────────────────
-    save_markdown(markdown, str(output_path))
+        # ── Step 6: Save output ───────────────────────────────────────────────────
+        save_markdown(markdown, str(output_path))
 
-    # ── Step 7: Upload result (optional) ─────────────────────────────────────
-    if args.upload:
-        from src.blob_storage import upload_markdown
-        upload_markdown(str(output_path), output_path.name)
-
-    # ── Cleanup frames directory ──────────────────────────────────────────────
-    if os.environ.get("MOCK_VISION", "false").lower() != "true" and pathlib.Path(args.frames).exists():
-        shutil.rmtree(args.frames)
-        print(f"[cleanup] Removed '{args.frames}/' directory")
+        # ── Step 7: Upload result (optional) ─────────────────────────────────────
+        if args.upload:
+            from src.blob_storage import upload_markdown
+            upload_markdown(str(output_path), output_path.name)
 
     print("\n" + "=" * 60)
     print(f"  Done!  Documentation saved to: {output_path}")

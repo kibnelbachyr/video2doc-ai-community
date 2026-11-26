@@ -197,7 +197,7 @@ def generate_documentation(transcript: str, image_context: str) -> str:
                 raise
             delay = base_delay_seconds * attempt
             print(f"[llm] Rate limited (attempt {attempt}/{max_attempts}), "
-                  f"retrying in {delay}s … ({exc})")
+                  f"retrying in {delay}s …")
             time.sleep(delay)
 
     markdown = response.choices[0].message.content or ""
@@ -224,15 +224,25 @@ def embed_frame_images(markdown: str, frames_dir: str) -> str:
     """
     frames_path = pathlib.Path(frames_dir)
     embedded_count = 0
+    total_encoded = 0
+    max_image_bytes = 2 * 1024 * 1024
+    max_encoded_bytes = 16 * 1024 * 1024
 
     def _replace(match: re.Match) -> str:
-        nonlocal embedded_count
+        nonlocal embedded_count, total_encoded
         caption, filename = match.group(1), match.group(2)
         frame_file = frames_path / filename
-        if not frame_file.exists():
+        if frame_file.is_symlink() or not frame_file.is_file():
             print(f"[embed] Referenced frame not found, dropping: {filename}")
             return ""
-        encoded = base64.b64encode(frame_file.read_bytes()).decode("ascii")
+        with frame_file.open("rb") as stream:
+            image = stream.read(max_image_bytes + 1)
+        if len(image) > max_image_bytes or not image.startswith(b"\x89PNG\r\n\x1a\n"):
+            raise ValueError("Invalid or oversized frame image")
+        encoded = base64.b64encode(image).decode("ascii")
+        total_encoded += len(encoded)
+        if total_encoded > max_encoded_bytes:
+            raise ValueError("Embedded image budget exceeded")
         embedded_count += 1
         return f"![{caption}](data:image/png;base64,{encoded})"
 

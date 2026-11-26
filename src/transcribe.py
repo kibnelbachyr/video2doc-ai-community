@@ -78,15 +78,20 @@ MOCK_TRANSCRIPT_SEGMENTS = [
 def _extract_wav(video_path: str, wav_path: str) -> None:
     """Extract mono 16 kHz PCM WAV from a video file using ffmpeg."""
     cmd = [
-        "ffmpeg", "-y", "-i", video_path,
+        "ffmpeg", "-nostdin", "-hide_banner", "-loglevel", "error", "-y",
+        "-protocol_whitelist", "file,pipe", "-i", video_path,
         "-ac", "1",      # mono
         "-ar", "16000",  # 16 kHz — optimal for Speech API
+        "-t", "601",     # bounded decode; reject more than 600 seconds below
         "-vn",           # drop video stream
         wav_path,
     ]
-    result = subprocess.run(cmd, capture_output=True, text=True)
+    result = subprocess.run(cmd, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, timeout=120)
     if result.returncode != 0:
-        raise RuntimeError(f"ffmpeg audio extraction failed:\n{result.stderr}")
+        raise RuntimeError("ffmpeg audio extraction failed")
+    with wave.open(wav_path, "rb") as decoded:
+        if decoded.getnframes() > 600 * decoded.getframerate():
+            raise ValueError("Audio duration exceeds 600 seconds")
 
 
 def _detect_silence_points(wav_path: str) -> list[float]:
@@ -96,11 +101,13 @@ def _detect_silence_points(wav_path: str) -> list[float]:
     sentences/words instead of slicing audio at a blind fixed interval.
     """
     cmd = [
-        "ffmpeg", "-i", wav_path,
+        "ffmpeg", "-nostdin", "-hide_banner", "-protocol_whitelist", "file,pipe", "-i", wav_path,
         "-af", f"silencedetect=noise={SILENCE_NOISE_DB}:d={SILENCE_MIN_DURATION}",
         "-f", "null", "-",
     ]
-    result = subprocess.run(cmd, capture_output=True, text=True)
+    result = subprocess.run(cmd, capture_output=True, text=True, timeout=60)
+    if result.returncode != 0:
+        raise RuntimeError("ffmpeg silence detection failed")
 
     points: list[float] = []
     for line in result.stderr.splitlines():
@@ -140,6 +147,9 @@ def _wav_chunks(wav_path: str) -> list[tuple[float, bytes]]:
     _detect_silence_points), falling back to a hard cut at
     MAX_CHUNK_SECONDS when no pause is found in range.
     """
+    with wave.open(wav_path, "rb") as probe:
+        if probe.getnframes() > 600 * probe.getframerate():
+            raise ValueError("Audio duration exceeds 600 seconds")
     silence_points = _detect_silence_points(wav_path)
 
     with wave.open(wav_path, "rb") as wf:
@@ -188,7 +198,7 @@ def _transcribe_chunk(chunk_bytes: bytes, key: str, region: str, language: str) 
         url, headers=headers, params=params, data=chunk_bytes, timeout=120
     )
     if response.status_code != 200:
-        print(f"[speech] API error {response.status_code}: {response.text[:200]}")
+        print(f"[speech] API error {response.status_code}")
         return "", 0.0
 
     result = response.json()

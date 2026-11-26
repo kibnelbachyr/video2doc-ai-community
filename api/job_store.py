@@ -10,6 +10,7 @@ Layout inside the 'jobs' container:
 """
 
 import os
+import threading
 from datetime import datetime, timezone
 from uuid import uuid4
 
@@ -22,6 +23,24 @@ _CONTAINER = "jobs"
 # In-memory job state store — used when MOCK_TRANSCRIPTION + MOCK_VISION are
 # both true so the API runs without any Azure credentials.
 _MEM_STORE: dict[str, JobState] = {}
+_MEM_RESULTS: dict[str, str] = {}
+_MEM_LOCK = threading.RLock()
+_MAX_MEMORY_JOBS = 32
+_MAX_RESULT_BYTES = 20 * 1024 * 1024
+
+
+def save_mock_result(job_id: str, markdown: str) -> None:
+    if len(markdown.encode('utf-8')) > _MAX_RESULT_BYTES:
+        raise ValueError('Result exceeds local size limit')
+    with _MEM_LOCK:
+        if job_id not in _MEM_STORE:
+            raise KeyError(job_id)
+        _MEM_RESULTS[job_id] = markdown
+
+
+def get_mock_result(job_id: str) -> str | None:
+    with _MEM_LOCK:
+        return _MEM_RESULTS.get(job_id)
 
 
 def _blob_client() -> BlobServiceClient:
@@ -43,15 +62,23 @@ def create_job(video_filename: str, *, in_memory: bool = False) -> JobState:
         updated_at=now,
     )
     if in_memory:
-        _MEM_STORE[state.job_id] = state
+        with _MEM_LOCK:
+            if len(_MEM_STORE) >= _MAX_MEMORY_JOBS:
+                terminal = next((rid for rid, item in _MEM_STORE.items() if item.status in (JobStatus.DONE, JobStatus.FAILED)), None)
+                if terminal is None:
+                    raise RuntimeError('Local job history full')
+                _MEM_STORE.pop(terminal)
+                _MEM_RESULTS.pop(terminal, None)
+            _MEM_STORE[state.job_id] = state.model_copy(deep=True)
     else:
         _write_state(state)
     return state
 
 
 def get_job(job_id: str) -> JobState:
-    if job_id in _MEM_STORE:
-        return _MEM_STORE[job_id]
+    with _MEM_LOCK:
+        if job_id in _MEM_STORE:
+            return _MEM_STORE[job_id].model_copy(deep=True)
     if (os.environ.get("MOCK_TRANSCRIPTION", "false").lower() == "true"
             and os.environ.get("MOCK_VISION", "false").lower() == "true"):
         raise KeyError(job_id)
@@ -69,10 +96,11 @@ def update_job(job_id: str, **kwargs) -> JobState:
     for key, value in kwargs.items():
         setattr(state, key, value)
     state.updated_at = datetime.now(timezone.utc)
-    if job_id in _MEM_STORE:
-        _MEM_STORE[job_id] = state
-    else:
-        _write_state(state)
+    with _MEM_LOCK:
+        if job_id in _MEM_STORE:
+            _MEM_STORE[job_id] = state.model_copy(deep=True)
+            return state
+    _write_state(state)
     return state
 
 
@@ -106,6 +134,8 @@ def download_video(job_id: str, filename: str, local_path: str) -> None:
 
 
 def save_result(job_id: str, markdown: str) -> None:
+    if len(markdown.encode('utf-8')) > _MAX_RESULT_BYTES:
+        raise ValueError('Result exceeds size limit')
     (
         _blob_client()
         .get_blob_client(_CONTAINER, f"{job_id}/result.md")
