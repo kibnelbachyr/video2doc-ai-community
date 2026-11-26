@@ -9,7 +9,7 @@ An experimental multimodal pipeline for turning product demonstrations, training
 
 The implementation combines timestamped transcription, sampled video frames, visual captions and OCR with language-model generation. The community edition is designed to make the architecture and its trade-offs reproducible without requiring cloud credentials for the offline baseline.
 
-> **v0.1.0 · Experimental · Apache 2.0.** Offline API/CLI execution and synthetic media components are verified in CI. Live-model accuracy, multilingual fidelity, production security, performance and cost have not been validated. Keep the unauthenticated API local; do not upload sensitive recordings or expose it to the internet.
+> **v0.1.0 published · v0.2.0 development candidate · Experimental · Apache 2.0.** Offline API/CLI execution and synthetic media components are verified in CI. Live-model accuracy, multilingual fidelity, production security, performance and cost have not been validated. Keep the unauthenticated API local; do not upload sensitive recordings or expose it to the internet.
 
 ## Quick start — no Azure credentials
 
@@ -69,20 +69,25 @@ See the [architecture](docs/architecture.md) and [ADR-001](docs/adr/001-executio
 | Offline API and CLI | Credential-free smoke tests; upload denial and unknown-job handling |
 | Local media components | Generated test-pattern video and audio; real frame/audio extraction, timestamp formatting and embedding |
 | Untrusted input/output | Filename rejection; literal-text bounded preview |
-| Automated verification | 9 Python and 3 JavaScript tests; separate resolved API dependency advisory audit |
-| AI quality | Four fictional English/French cases and proposed human-review rubric; no live results |
+| Automated verification | Development suite: 28 Python and 3 JavaScript tests, selected static checks, pinned Linux runtime versions and separate dependency advisory audit |
+| AI quality | Four fictional bilingual fixtures; 20 offline evaluator self-test variants; proposed human-review rubric; no live results |
 
 [Verified baseline CI](https://github.com/kibnelbachyr/video2doc-ai-community/actions/runs/45766562173) reported no known vulnerabilities in the audited Python packages at the time of the scan. This does not cover every dependency, container, operating system or application security risk.
 
 To run the tests locally with Python 3.11, FFmpeg and Node.js 24 available:
 
 ```bash
-python -m pip install -r api/requirements.txt httpx==0.27.2
+python -m pip install -r requirements-linux-py311.lock
+python -m pip install -c requirements-linux-py311.lock httpx==0.27.2
+python scripts/verify_source.py
 python -m unittest discover -s tests -v
 node --test tests/test_preview.js
+python -m evals.run_offline --output evaluation-report.json
 ```
 
 Full details: [engineering evidence and limitations](docs/portfolio-readiness.md) · [evaluation protocol](evals/README.md) · [changelog](CHANGELOG.md).
+
+Current development adds process-local admission and retention, post-multipart upload limits, bounded media subprocesses and image embedding. These limits do not provide authentication, filesystem isolation, a durable distributed queue or end-to-end resource guarantees. Dependency pins target Linux/Python 3.11 and are not a hash-locked cross-platform build. See [API limits](docs/api.md) and [evaluation protocol](evals/README.md). Public candidate CI must pass before a new release.
 
 ## Repository guide
 
