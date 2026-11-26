@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>video2doc-ai – Générer de la documentation depuis vos vidéos</title>
+  <link rel="stylesheet" href="style.css" />
+
+  <!--
+    config.js est généré au moment du déploiement (gitignored).
+    Il définit window.API_BASE_URL sur l'URL du Container App.
+    S'il est absent (développement local avec uvicorn), les appels API utilisent des chemins relatifs.
+  -->
+  <script src="config.js" onerror="window.API_BASE_URL=''"></script>
+
+  <!-- marked.js pour le rendu Markdown -->
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+</head>
+<body>
+
+<!-- ── En-tête ──────────────────────────────────────────────────────────────── -->
+<header>
+  <span class="logo">📹 video2doc-ai</span>
+  <span class="tagline">Générez de la documentation structurée depuis vos vidéos internes avec Azure AI</span>
+</header>
+
+<!-- ── Contenu principal ─────────────────────────────────────────────────────── -->
+<main>
+
+  <!-- Carte d'import -->
+  <section class="card" id="upload-card">
+    <h2>⬆ Importer une vidéo</h2>
+
+    <div id="upload-zone">
+      <div class="icon">🎬</div>
+      <p><strong>Glissez-déposez</strong> votre vidéo ici, ou <strong>cliquez pour parcourir</strong></p>
+      <p style="margin-top:.5rem">Formats acceptés : MP4, MOV, AVI, MKV, WEBM &nbsp;·&nbsp; Max 500 Mo</p>
+      <input type="file" id="file-input" accept="video/mp4,video/quicktime,video/x-msvideo,video/x-matroska,video/webm,video/x-ms-wmv" />
+    </div>
+
+    <div id="selected-file">
+      <span class="file-icon">🎥</span>
+      <span class="file-name" id="file-name"></span>
+      <span class="file-size" id="file-size"></span>
+    </div>
+
+    <button id="start-btn" disabled>Générer la documentation</button>
+  </section>
+
+  <!-- Carte de progression -->
+  <section class="card" id="progress-card">
+    <h2>⚙ Traitement en cours</h2>
+    <ul class="steps">
+      <li class="step pending" data-step="uploading">
+        <span class="step-icon"></span>
+        <span class="step-label">Envoi de la vidéo</span>
+        <span class="step-time"></span>
+      </li>
+      <li class="step pending" data-step="transcribing">
+        <span class="step-icon"></span>
+        <span class="step-label">Transcription audio &nbsp;<small style="color:var(--neutral-60)">(Azure AI Speech)</small></span>
+        <span class="step-time"></span>
+      </li>
+      <li class="step pending" data-step="extracting_frames">
+        <span class="step-icon"></span>
+        <span class="step-label">Extraction des images clés &nbsp;<small style="color:var(--neutral-60)">(ffmpeg)</small></span>
+        <span class="step-time"></span>
+      </li>
+      <li class="step pending" data-step="analyzing_images">
+        <span class="step-icon"></span>
+        <span class="step-label">Analyse des images &nbsp;<small style="color:var(--neutral-60)">(Azure AI Vision)</small></span>
+        <span class="step-time"></span>
+      </li>
+      <li class="step pending" data-step="generating_docs">
+        <span class="step-icon"></span>
+        <span class="step-label">Génération de la documentation &nbsp;<small style="color:var(--neutral-60)">(Azure AI Foundry · GPT-4.1)</small></span>
+        <span class="step-time"></span>
+      </li>
+      <li class="step pending" data-step="done">
+        <span class="step-icon"></span>
+        <span class="step-label">Terminé</span>
+        <span class="step-time"></span>
+      </li>
+    </ul>
+
+    <div id="error-msg"></div>
+  </section>
+
+  <!-- Carte résultat -->
+  <section class="card" id="result-card">
+    <h2>📄 Documentation générée</h2>
+    <div class="result-toolbar">
+      <button class="btn-secondary" id="new-job-btn">+ Nouvelle vidéo</button>
+      <button class="btn-secondary" id="copy-btn">Copier le Markdown</button>
+      <button class="btn-primary"   id="download-btn" data-filename="documentation.md">⬇ Télécharger .md</button>
+    </div>
+    <div id="markdown-preview"></div>
+  </section>
+
+</main>
+
+<!-- ── Pied de page ───────────────────────────────────────────────────────────── -->
+<footer>
+  Built using: &nbsp;
+  Azure AI Speech &nbsp;·&nbsp;
+  Azure AI Vision &nbsp;·&nbsp;
+  Azure AI Foundry (GPT-4.1) &nbsp;·&nbsp;
+  Azure Container Apps &nbsp;·&nbsp;
+  Azure Static Web Apps &nbsp;·&nbsp;
+  Azure Blob Storage
+</footer>
+
+<script src="app.js"></script>
+</body>
+</html>
