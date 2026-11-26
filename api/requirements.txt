@@ -1,7 +1,8 @@
 # ── Web framework ─────────────────────────────────────────────────────────────
-fastapi==0.111.0
+fastapi==0.165.0
+starlette==1.10.0              # explicit patched framework dependency
 uvicorn[standard]==0.30.1
-python-multipart==0.0.9         # multipart/form-data file uploads
+python-multipart==0.0.34         # multipart/form-data file uploads
 aiofiles==23.2.1                # required by FastAPI StaticFiles
 
 # ── Azure SDKs ────────────────────────────────────────────────────────────────
@@ -10,5 +11,5 @@ azure-ai-vision-imageanalysis==1.0.0
 openai>=1.50.0                  # Azure OpenAI uses the openai package
 
 # ── Utilities ─────────────────────────────────────────────────────────────────
-python-dotenv==1.0.1
-requests==2.31.0
+python-dotenv==1.2.4
+requests==2.34.2
