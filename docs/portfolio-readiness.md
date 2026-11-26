@@ -6,7 +6,7 @@ This is a proof-of-value project, not a production-ready service. This checklist
 
 | Gate | Acceptance evidence | Status |
 | --- | --- | --- |
-| P0 — Publication boundary | Owner approved Apache-2.0 experimental distribution; bounded review of current files and available history/PRs completed | Experimental scope approved; final publication checks pending |
+| P0 — Publication boundary | Owner approved Apache-2.0 experimental distribution; bounded review of current files and available history/PRs completed | Experimental scope approved; bounded disclosure review completed, final release verification required |
 | P1 — Reproducible local run | CI-verified credential-free synthetic API and CLI run; generated local video/audio decoding, frame embedding and timestamps separately tested | Verified for offline/component scope |
 | P2 — Automated verification | CI runs unit tests, offline smoke tests, synthetic media tests and Python advisory audit; formatting/lint and automated secret scanning remain to be established | Partial; current test and audit checks green |
 | P3 — Architectural evidence | Document job lifecycle, trust boundaries, failure modes, retry and idempotency decisions, and deployment assumptions; link ADRs from architecture docs | Documented baseline; no production validation |
@@ -17,7 +17,7 @@ This is a proof-of-value project, not a production-ready service. This checklist
 
 1. Confirm P0 before further public examples or releases. No license is implied by public visibility.
 2. Validate local setup and mock mode in a clean environment. Add a synthetic fixture and a deterministic generation stub if the current mock path requires a live model.
-3. Add a minimal PR-only CI workflow, without cloud deployments or secrets. Start with timestamp utilities, job state transitions and an end-to-end offline smoke test.
+3. Add a CI workflow on pull requests and main pushes, without cloud deployments or secrets. Start with timestamp utilities, job state transitions and an end-to-end offline smoke test.
 4. Record architecture decisions: background thread vs durable queue, job storage, model output handling and access boundaries.
 5. Establish a small evaluation baseline and cost measurement protocol. Do not publish performance or quality claims without measurements.
 

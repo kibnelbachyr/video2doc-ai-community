@@ -1,6 +1,6 @@
 # Changelog
 
-## v0.1.0 — Experimental Community Release (candidate)
+## v0.1.0 — Experimental Community Release
 
 Initial independently distributed Apache-2.0 edition of the video-to-documentation proof of value.
 
@@ -17,7 +17,7 @@ Initial independently distributed Apache-2.0 edition of the video-to-documentati
 
 ### Verification
 
-[Baseline main CI](https://github.com/kibnelbachyr/video2doc-ai-community/actions/runs/45766562173) passed all 12 tests on Python 3.11 and Node.js on the GitHub-hosted runner. The resolved API Python dependency audit reported no known vulnerabilities at the time of the scan, following remediation of 18 previous findings. The release candidate requires its own passing CI. No Azure resources were deployed or live AI services invoked during this validation.
+[Baseline main CI](https://github.com/kibnelbachyr/video2doc-ai-community/actions/runs/45766562173) passed all 12 tests on Python 3.11 and Node.js on the GitHub-hosted runner. The resolved API Python dependency audit reported no known vulnerabilities at the time of the scan, following remediation of 18 previous findings. Release changes require passing CI before tagging. No Azure resources were deployed or live AI services invoked during this validation.
 
 ### Limitations
 

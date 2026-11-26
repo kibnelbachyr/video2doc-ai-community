@@ -1,5 +1,7 @@
 # Deployment Guide
 
+> Experimental infrastructure reference only. This unauthenticated proof of value is not suitable for public or shared deployment. Review identity, access, networking, upload limits, residency, retention and costs before deploying. Manual deployment may incur Azure charges; CI does not deploy.
+
 This guide covers deploying video2doc-ai to Azure from scratch using the CLI,
 and optionally automating subsequent deploys with GitHub Actions.
 

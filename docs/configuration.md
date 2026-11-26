@@ -48,8 +48,8 @@ trigger in-memory storage mode, bypassing Blob Storage entirely).
 
 | Variable | Required | Default | Example | Description |
 |----------|----------|---------|---------|-------------|
-| `AZURE_OPENAI_ENDPOINT` | Yes | — | `https://aif-v2doc-abc123.cognitiveservices.azure.com/` | Endpoint of the AIServices account. Note: ends with `.cognitiveservices.azure.com/`, not `.openai.azure.com/`. |
-| `AZURE_OPENAI_KEY` | Yes | — | `abc123...` | Primary key of the AIServices account. |
+| `AZURE_OPENAI_ENDPOINT` | Live generation only | — | `https://aif-v2doc-abc123.cognitiveservices.azure.com/` | Endpoint of the AIServices account. Note: ends with `.cognitiveservices.azure.com/`, not `.openai.azure.com/`. |
+| `AZURE_OPENAI_KEY` | Live generation only | — | `abc123...` | Primary key of the AIServices account. |
 | `AZURE_OPENAI_DEPLOYMENT` | No | `gpt-4.1` | `gpt-4.1` | Name of the model deployment inside Azure AI Foundry. Must match the deployment name in `main.bicep`. |
 | `AZURE_OPENAI_API_VERSION` | No | `2025-04-01-preview` | `2025-04-01-preview` | Azure OpenAI API version. Required for the GPT-4.1 model. |
 
@@ -121,4 +121,4 @@ MOCK_VISION=true
 MOCK_GENERATION=true
 ```
 
-No Azure credentials are required for these three flags. Use one API worker. For a live model, set MOCK_GENERATION=false and configure Foundry.
+No Azure credentials are required for these three flags. Use one API worker. For live generation, set MOCK_GENERATION=false and configure Foundry. For real media analysis, disable the relevant media mocks and configure the corresponding services; the CLI upload option requires Blob credentials.
