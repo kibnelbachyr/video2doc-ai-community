@@ -1,13 +1,11 @@
-# video2doc-ai
+# video2doc-ai Community
 
-> **Generate structured, multi-language product documentation from internal videos using Azure AI.**
+> **An experimental multimodal pipeline for generating structured documentation from video using Azure AI and Diátaxis.**
 
-> **Project maturity:** Proof of value. This repository demonstrates an architecture and implementation; it is not presented as production-ready. See the [portfolio evidence gates](docs/portfolio-readiness.md) and [production readiness plan](docs/production-readiness-plan.md).
+> **v0.1.0 experimental release candidate · Apache 2.0.** The offline API/CLI, synthetic-media components and Python dependency advisory scan have been verified in CI. Live-provider output quality, production security and operational cost are not validated. See [release notes](CHANGELOG.md), [engineering evidence](docs/portfolio-readiness.md) and the [production readiness plan](docs/production-readiness-plan.md).
 
 Give it a video recording of a product demo, training session, or technical walkthrough.
-It transcribes the audio, analyses the screen visuals, and produces ready-to-publish
-Markdown documentation in the **Diátaxis** format — automatically in the same language
-as the video (French or English).
+The live-provider implementation is designed to transcribe audio, analyze screen visuals and produce draft Markdown in the **Diátaxis** format (French or English). Review all generated documentation before use; model quality has not been measured in this community release.
 
 📊 For a slide-deck overview (problem, solution, business value), see [PRESENTATION.md](PRESENTATION.md).
 
@@ -140,6 +138,25 @@ MOCK_TRANSCRIPTION=true MOCK_VISION=true MOCK_GENERATION=true \
 
 # Open http://localhost:8000 (one worker in mock mode)
 ```
+
+In the browser, select a harmless placeholder file named `demo.mp4`; full mock mode does not decode its contents. Alternatively, run the CLI without any actual media file:
+
+```bash
+MOCK_TRANSCRIPTION=true MOCK_VISION=true MOCK_GENERATION=true \
+  python pipeline.py --video demo.mp4
+```
+
+The result is fixed synthetic Markdown, not documentation inferred from the video. Keep the local API bound to localhost. Do not expose this unauthenticated proof of value to the internet or submit confidential recordings. Live mode requires separately configured Azure services and can incur charges.
+
+To reproduce the test suite with Python 3.11, FFmpeg and Node.js available:
+
+```bash
+python -m pip install -r api/requirements.txt httpx==0.27.2
+python -m unittest discover -s tests -v
+node --test tests/test_preview.js
+```
+
+See the [verified baseline CI run](https://github.com/kibnelbachyr/video2doc-ai-community/actions/runs/45766562173) for nine Python tests, three JavaScript tests and the point-in-time Python advisory scan. Dependency installation requires network access.
 
 ---
 

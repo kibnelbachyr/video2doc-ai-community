@@ -6,7 +6,7 @@ This is a proof-of-value project, not a production-ready service. This checklist
 
 | Gate | Acceptance evidence | Status |
 | --- | --- | --- |
-| P0 — Publication boundary | Owner confirms rights to publish code, documentation and examples; review current and historical content for customer material, secrets and personal data; decide licensing explicitly | Open |
+| P0 — Publication boundary | Owner approved Apache-2.0 experimental distribution; bounded review of current files and available history/PRs completed | Experimental scope approved; final publication checks pending |
 | P1 — Reproducible local run | CI-verified credential-free synthetic API and CLI run; generated local video/audio decoding, frame embedding and timestamps separately tested | Verified for offline/component scope |
 | P2 — Automated verification | CI runs unit tests, offline smoke tests, synthetic media tests and Python advisory audit; formatting/lint and automated secret scanning remain to be established | Partial; current test and audit checks green |
 | P3 — Architectural evidence | Document job lifecycle, trust boundaries, failure modes, retry and idempotency decisions, and deployment assumptions; link ADRs from architecture docs | Documented baseline; no production validation |
@@ -50,3 +50,7 @@ The synthetic-media tests create a three-second local test-pattern video and sin
 [Main CI run 45764402924](https://github.com/kibnelbachyr/video2doc-ai-community/actions/runs/45764402924), commit `988a2d485b75fa903da9880b1f0e34bfa0b0d25e`, completed successfully on Python 3.11: 9 Python and 3 JavaScript tests passed. The audit reported `No known vulnerabilities found` for resolved API Python dependencies, without advisory exemptions. This is a point-in-time Python advisory scan, not coverage of all OS/image/browser dependencies or a security audit. PR and push verification are active; enforcement of required checks depends on repository plan/settings. No Azure operations performed.
 
 See [architecture decision record](adr/001-execution-and-trust-boundaries.md) and [evaluation protocol](../evals/README.md) for documented boundaries and planned evidence. No live model results or cloud performance measurements have been produced. Public experimental release requires explicit scope/owner approval and final disclosure review; the broader reproducibility and production-readiness roadmap remains open.
+
+## v0.1.0 experimental release scope
+
+Owner approved an experimental Apache-2.0 community release with documented limitations. The [verified main CI run 45766562173](https://github.com/kibnelbachyr/video2doc-ai-community/actions/runs/45766562173) at `d53fd0ca2099b1f4b7ed25c5062f2ed204976a67` passed nine Python tests, three Node tests and a resolved API Python dependency advisory audit. Both CI actions use SHA-pinned Node.js 24-native versions. Release documentation changes require fresh CI. No Azure operations performed for this verification. This release does not close the broader P2/P4/P5 gates or establish a security boundary. Dependency-license review, comprehensive secret scanning and metadata review are not exhaustive. See [release notes](../CHANGELOG.md) for limitations.
