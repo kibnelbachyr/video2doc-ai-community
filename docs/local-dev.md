@@ -13,7 +13,7 @@ without deploying to Azure.
 | ffmpeg | any recent | `brew install ffmpeg` / `apt install ffmpeg` |
 | Docker Desktop | any | [docker.com](https://docker.com) (optional, for container testing) |
 
-ffmpeg must be on your `PATH`. Verify with:
+FFmpeg is required for real-media processing and media tests, but not the fully mocked demo. For media processing, ffmpeg must be on your `PATH`. Verify with:
 ```bash
 ffmpeg -version
 ```
@@ -24,7 +24,7 @@ ffmpeg -version
 
 ```bash
 git clone https://github.com/kibnelbachyr/video2doc-ai-community.git
-cd video2doc-ai
+cd video2doc-ai-community
 
 python -m venv .venv
 source .venv/bin/activate          # Windows: .venv\Scripts\activate
@@ -109,20 +109,20 @@ and removes the extracted frames directory after a real vision run. Offline mode
 
 ## Running in Docker
 
-Build and run the container locally to reproduce the production environment:
+Build and run the experimental container locally. This does not establish production parity or security:
 
 ```bash
 # Build the image
 docker build -t video2doc-api .
 
 # Run with your .env file
-docker run -p 8000:8000 --env-file .env video2doc-api
+docker run -p 127.0.0.1:8000:8000 --env-file .env video2doc-api
 
 # Run in mock mode (no Azure credentials)
-docker run -p 8000:8000 \
+docker run -p 127.0.0.1:8000:8000 \
   -e MOCK_TRANSCRIPTION=true \
-  -e MOCK_VISION=true \\
-  -e MOCK_GENERATION=true \\
+  -e MOCK_VISION=true \
+  -e MOCK_GENERATION=true \
   video2doc-api uvicorn api.main:app --host 0.0.0.0 --port 8000 --workers 1
 ```
 

@@ -1,154 +1,80 @@
 # video2doc-ai Community
 
-> **An experimental multimodal pipeline for generating structured documentation from video using Azure AI and Diátaxis.**
+[![Offline verification](https://github.com/kibnelbachyr/video2doc-ai-community/actions/workflows/offline-ci.yml/badge.svg)](https://github.com/kibnelbachyr/video2doc-ai-community/actions/workflows/offline-ci.yml)
+[![License: Apache 2.0](https://img.shields.io/badge/license-Apache--2.0-blue.svg)](LICENSE)
 
-> **v0.1.0 experimental release candidate · Apache 2.0.** The offline API/CLI, synthetic-media components and Python dependency advisory scan have been verified in CI. Live-provider output quality, production security and operational cost are not validated. See [release notes](CHANGELOG.md), [engineering evidence](docs/portfolio-readiness.md) and the [production readiness plan](docs/production-readiness-plan.md).
+**From recorded knowledge to structured documentation.**
 
-Give it a video recording of a product demo, training session, or technical walkthrough.
-The live-provider implementation is designed to transcribe audio, analyze screen visuals and produce draft Markdown in the **Diátaxis** format (French or English). Review all generated documentation before use; model quality has not been measured in this community release.
+An experimental multimodal pipeline for turning product demonstrations, training recordings and technical walkthroughs into draft Markdown using Azure AI and the [Diátaxis](https://diataxis.fr/) documentation framework.
 
-📊 For a slide-deck overview (problem, solution, business value), see [PRESENTATION.md](PRESENTATION.md).
+The implementation combines timestamped transcription, sampled video frames, visual captions and OCR with language-model generation. The community edition is designed to make the architecture and its trade-offs reproducible without requiring cloud credentials for the offline baseline.
 
----
+> **v0.1.0 · Experimental · Apache 2.0.** Offline API/CLI execution and synthetic media components are verified in CI. Live-model accuracy, multilingual fidelity, production security, performance and cost have not been validated. Keep the unauthenticated API local; do not upload sensitive recordings or expose it to the internet.
 
-## How it works
+## Quick start — no Azure credentials
 
-```
-┌─────────────┐     POST /api/jobs      ┌──────────────────────────────────────────┐
-│  Browser UI │ ───────────────────────▶│          FastAPI  (Container App)        │
-│  (SWA)      │ ◀─── job_id + polling ──│                                          │
-└─────────────┘                         │  1. Upload video  → Azure Blob Storage   │
-                                        │  2. Transcribe    → Azure AI Speech       │
-                                        │  3. Extract frames→ ffmpeg               │
-                                        │  4. Analyse frames→ Azure AI Vision      │
-                                        │  5. Generate docs → Azure AI Foundry     │
-                                        │                      GPT-4.1             │
-                                        └──────────────────────────────────────────┘
-```
-
-The browser uploads a video file. The API spawns a background thread that runs
-the five-step pipeline, updating a job state document in Blob Storage after each step.
-The browser polls every 2 seconds and shows live progress; when the job completes it
-displays a safe plain-text Markdown preview and offers full download.
-
----
-
-## Architecture
-
-```
-                    ┌──────────────────────────┐
-                    │  Azure Static Web Apps   │
-                    │  (React-less SPA / UI)   │
-                    └────────────┬─────────────┘
-                                 │ POST /api/jobs
-                                 │ GET  /api/jobs/{id}
-                                 ▼
-                    ┌──────────────────────────┐
-                    │  Azure Container Apps    │
-                    │  FastAPI (api/)          │◀── Managed Identity
-                    └────────────┬─────────────┘         │
-                                 │                        │
-      ┌──────────────────────────┼───────────────┐        │
-      ▼                          ▼               ▼        ▼
-┌──────────────────┐  ┌─────────────────────┐  ┌──────────────────┐
-│  Azure AI Speech │  │  Azure AI Vision    │  │  Azure Key Vault │
-│  (transcription) │  │  (caption + OCR)    │  │  (secrets)       │
-└──────────────────┘  └─────────────────────┘  └──────────────────┘
-          │                    │
-          └──────────┬─────────┘
-                     ▼
-          ┌──────────────────────┐       ┌──────────────────────┐
-          │  Azure AI Foundry    │       │  Azure Blob Storage  │
-          │  GPT-4.1             │──────▶│  jobs/{id}/state.json│
-          └──────────────────────┘       │  jobs/{id}/result.md │
-                                         └──────────────────────┘
-```
-
-### Azure Services
-
-| Service | SKU | Role |
-|---------|-----|------|
-| Azure Static Web Apps | Free | Hosts the vanilla-JS browser UI |
-| Azure Container Apps | Consumption | Runs the FastAPI backend + pipeline |
-| Azure Container Registry | Basic | Stores the Docker image |
-| Azure AI Speech | S0 | Converts video audio to text |
-| Azure AI Vision 4.0 | S1 | Captions and OCR on extracted frames |
-| Azure AI Foundry (GPT-4.1) | S0 GlobalStandard | Generates Diátaxis documentation |
-| Azure Blob Storage | Standard LRS | Persists job state + generated Markdown |
-| Azure Key Vault | Standard | Stores all service secrets |
-
-**Target region:** `francecentral` for all resources · SWA in `westeurope`.
-
----
-
-## Project layout
-
-```
-video2doc-ai/
-├── api/                    ← FastAPI backend
-│   ├── main.py             #   App entry point, CORS, static-file mount
-│   ├── models.py           #   Pydantic models (JobState, JobStatus, JobStep)
-│   ├── job_store.py        #   Blob-backed job persistence
-│   ├── pipeline_runner.py  #   Background pipeline thread
-│   ├── routers/jobs.py     #   REST endpoints
-│   └── requirements.txt
-│
-├── src/                    ← Pipeline modules (shared by API and CLI)
-│   ├── timestamps.py       #   Shared MM:SS formatting for the transcript/frame timeline
-│   ├── transcribe.py       #   Azure AI Speech REST API (silence-aware chunking, timestamps)
-│   ├── extract_frames.py   #   ffmpeg keyframe extraction (all codecs), timestamped
-│   ├── analyze_images.py   #   Azure AI Vision captions + OCR
-│   ├── generate_docs.py    #   Azure AI Foundry GPT-4.1 + Diátaxis prompt + frame embedding
-│   └── blob_storage.py     #   Azure Blob helpers (CLI use)
-│
-├── ui/                     ← Static Web App (vanilla JS, no framework)
-│   ├── index.html          #   SPA shell (French UI)
-│   ├── style.css           #   Styles
-│   ├── app.js              #   Upload → poll → preview Markdown
-│   └── staticwebapp.config.json
-│
-├── infra/                  ← Azure Bicep IaC
-│   ├── main.bicep          #   All resources in one template
-│   ├── main.bicepparam     #   Parameter defaults
-│   └── deploy.sh           #   One-shot CLI deployment
-│
-├── .github/workflows/
-│   ├── deploy-infra.yml    #   Manual Bicep deployment
-│   └── deploy-app.yml      #   Manual Docker build + SWA deployment
-│
-├── pipeline.py             ← Standalone CLI (no API needed)
-├── Dockerfile              ← API container (python:3.11-slim + ffmpeg)
-└── .env.example            ← Environment variable reference
-```
-
----
-
-## Quick start — local development
+Prerequisite: Python 3.11 (verified in CI). Dependency installation requires internet access. FFmpeg is needed for real media processing and media tests, not the fully mocked demo.
 
 ```bash
 git clone https://github.com/kibnelbachyr/video2doc-ai-community.git
 cd video2doc-ai-community
+python -m venv .venv
+source .venv/bin/activate
+python -m pip install -r api/requirements.txt
 
-python -m venv .venv && source .venv/bin/activate
-pip install -r api/requirements.txt
-
-# Run in full mock mode (no Azure credentials required)
 MOCK_TRANSCRIPTION=true MOCK_VISION=true MOCK_GENERATION=true \
-  uvicorn api.main:app --reload --port 8000
-
-# Open http://localhost:8000 (one worker in mock mode)
+  uvicorn api.main:app --host 127.0.0.1 --port 8000 --workers 1
 ```
 
-In the browser, select a harmless placeholder file named `demo.mp4`; full mock mode does not decode its contents. Alternatively, run the CLI without any actual media file:
+Open http://localhost:8000. Select a harmless placeholder file named `demo.mp4`, start the pipeline and download the result. The preview displays literal Markdown text rather than interpreting model output as HTML.
+
+Alternatively, run the CLI without any actual video file:
 
 ```bash
 MOCK_TRANSCRIPTION=true MOCK_VISION=true MOCK_GENERATION=true \
   python pipeline.py --video demo.mp4
 ```
 
-The result is fixed synthetic Markdown, not documentation inferred from the video. Keep the local API bound to localhost. Do not expose this unauthenticated proof of value to the internet or submit confidential recordings. Live mode requires separately configured Azure services and can incur charges.
+The generated `output/demo.md` is a fixed, labeled fictional document containing the four Diátaxis sections. It does **not** analyze your video in this mode. See [local development](docs/local-dev.md) for other configurations.
 
-To reproduce the test suite with Python 3.11, FFmpeg and Node.js available:
+## Architecture
+
+```mermaid
+flowchart TD
+    A["Video upload / CLI"] --> B["Timestamped audio transcript"]
+    A --> C["Sample video frames"]
+    C --> D["Visual captions and OCR"]
+    B --> E["Document generation"]
+    D --> E
+    E --> F["Embed available screenshots"]
+    F --> G["Markdown output"]
+```
+
+| Stage | Live implementation | Offline baseline |
+| --- | --- | --- |
+| Transcription | Azure AI Speech | Fixed fictional transcript |
+| Visual context | FFmpeg + Azure AI Vision | Fixed fictional captions/OCR; frame extraction bypassed |
+| Generation | Azure AI Foundry, GPT-4.1 configuration | Deterministic synthetic Markdown |
+| State and results | Blob Storage (API); local files (CLI) | Process memory (API); local files (CLI) |
+| Preview | Literal-text browser preview | Same preview, no third-party renderer |
+
+The API uses a background thread and polling. The infrastructure templates target Azure Container Apps, Static Web Apps, Blob Storage, Key Vault and managed identity. This is a proposed live deployment architecture, not proof of an operational deployment. All Azure deployment workflows require explicit manual dispatch and may incur costs.
+
+See the [architecture](docs/architecture.md) and [ADR-001](docs/adr/001-execution-and-trust-boundaries.md) for trust boundaries, failure modes, state management and production prerequisites.
+
+## Engineering evidence
+
+| Capability | Evidence |
+| --- | --- |
+| Offline API and CLI | Credential-free smoke tests; upload denial and unknown-job handling |
+| Local media components | Generated test-pattern video and audio; real frame/audio extraction, timestamp formatting and embedding |
+| Untrusted input/output | Filename rejection; literal-text bounded preview |
+| Automated verification | 9 Python and 3 JavaScript tests; separate resolved API dependency advisory audit |
+| AI quality | Four fictional English/French cases and proposed human-review rubric; no live results |
+
+[Verified baseline CI](https://github.com/kibnelbachyr/video2doc-ai-community/actions/runs/45766562173) reported no known vulnerabilities in the audited Python packages at the time of the scan. This does not cover every dependency, container, operating system or application security risk.
+
+To run the tests locally with Python 3.11, FFmpeg and Node.js 24 available:
 
 ```bash
 python -m pip install -r api/requirements.txt httpx==0.27.2
@@ -156,41 +82,35 @@ python -m unittest discover -s tests -v
 node --test tests/test_preview.js
 ```
 
-See the [verified baseline CI run](https://github.com/kibnelbachyr/video2doc-ai-community/actions/runs/45766562173) for nine Python tests, three JavaScript tests and the point-in-time Python advisory scan. Dependency installation requires network access.
+Full details: [engineering evidence and limitations](docs/portfolio-readiness.md) · [evaluation protocol](evals/README.md) · [changelog](CHANGELOG.md).
 
----
+## Repository guide
 
-## Detailed documentation
+| Path | Purpose |
+| --- | --- |
+| `api/` | FastAPI endpoints, job state and background runner |
+| `src/` | Shared audio, visual and generation pipeline |
+| `ui/` | Vanilla JavaScript browser interface |
+| `infra/` | Experimental Azure Bicep deployment templates |
+| `prompts/` | Diátaxis generation instructions |
+| `tests/` | Offline, media and preview regression tests |
+| `evals/` | Synthetic bilingual evaluation specifications |
+| `pipeline.py` | Standalone CLI |
 
-| Page | Content |
-|------|---------|
-| [Architecture](docs/architecture.md) | Component design, data flow, technology choices |
-| [Azure Stack](docs/azure-stack.md) | Every Azure service used, its SKU, and its role in the solution |
-| [Pipeline](docs/pipeline.md) | Each of the 5 processing steps explained in depth |
-| [REST API](docs/api.md) | All endpoints, request/response schemas, error codes |
-| [Frontend](docs/frontend.md) | UI components, JavaScript flow, polling mechanism |
-| [Infrastructure](docs/infrastructure.md) | Bicep template, Azure resources, Managed Identity |
-| [Local Development](docs/local-dev.md) | Setup, mock mode, CLI usage, Docker |
-| [Deployment](docs/deployment.md) | Full Azure deployment walkthrough, CI/CD |
-| [Configuration](docs/configuration.md) | All environment variables reference |
-| [Production Readiness Plan](docs/production-readiness-plan.md) | Gap analysis, phased rollout, go-live checklist for taking the PoV to production |
-| [Cost Estimation](docs/cost-estimation.md) | Azure cost scenarios (PoV / pilot / production) with assumptions |
+## Documentation
 
----
+- [Local development](docs/local-dev.md) and [configuration](docs/configuration.md)
+- [Pipeline](docs/pipeline.md), [REST API](docs/api.md) and [frontend](docs/frontend.md)
+- [Azure architecture](docs/azure-stack.md), [infrastructure](docs/infrastructure.md) and [manual deployment](docs/deployment.md)
+- [Production readiness plan](docs/production-readiness-plan.md) and [illustrative cost assumptions](docs/cost-estimation.md)
+- [Project presentation](PRESENTATION.md)
 
-## Contributors
+## Contributing and security
 
-| Contributor | Role |
-|---|---|
-| [@kibnelbachyr](https://github.com/kibnelbachyr) | Project owner |
-| [Claude](https://claude.com) (Anthropic) | AI pair programmer — implementation, infrastructure, and documentation |
+Contributions to reproducibility, tests, documentation and architecture are welcome. Read [CONTRIBUTING.md](CONTRIBUTING.md) and [SECURITY.md](SECURITY.md) before sharing examples or reporting vulnerabilities. Use synthetic or expressly licensed fixtures; never include private recordings, credentials or organizational details.
 
-## Offline mode and license
+## License and attribution
 
-All three mock flags must be true for credential-free execution. Mock output is a fixed synthetic example, not a document derived from the uploaded video. No real video or ffmpeg is needed for the mock smoke tests. Azure deployments are manual-only. This generic edition is licensed under [Apache 2.0](LICENSE). Mock output is not model-quality evidence.
+[Apache License 2.0](LICENSE) applies to the project's original source and documentation. Third-party dependencies retain their own licenses; comprehensive dependency-license review remains outstanding.
 
-## Engineering evidence
-
-- [Portfolio readiness and verified CI evidence](docs/portfolio-readiness.md)
-- [ADR-001 — Execution and trust boundaries](docs/adr/001-execution-and-trust-boundaries.md)
-- [Synthetic bilingual evaluation protocol](evals/README.md) — planned live-model validation, not a reported quality score.
+Maintainer: [@kibnelbachyr](https://github.com/kibnelbachyr). AI-assisted development and documentation included Claude (Anthropic) and ChatGPT (OpenAI). The maintainer is responsible for review and release decisions.

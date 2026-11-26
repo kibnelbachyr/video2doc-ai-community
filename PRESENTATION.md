@@ -9,7 +9,9 @@ size: 16:9
 
 ### From screen recording to structured documentation — automatically
 
-**Proof of Value**
+**Experimental community edition · v0.1.0**
+
+Offline and synthetic media components verified; live AI quality and production deployment unvalidated.
 
 ---
 
@@ -24,11 +26,11 @@ size: 16:9
 
 ## The solution
 
-> Give it **one video file**. Get back **ready-to-publish documentation** — automatically, in the same language as the video.
+> Give it **one video file**. Generate **draft documentation** for human review, with French and English as target languages.
 
 - Input: a product demo, training, or walkthrough recording
-- Output: a complete, structured Markdown document with inline screenshots
-- No manual transcription, no manual screenshotting, no translation step
+- Output: structured draft Markdown with referenced screenshots embedded when available
+- Designed to reduce manual transcription and screenshotting; human review remains necessary
 
 ---
 
@@ -52,28 +54,27 @@ Frame        [02:18] frame_000027.png  →  Export dialog on screen
 ```
 
 Narration and visuals are **aligned by timestamp**, not just concatenated.
-The model places each screenshot exactly where the matching narration occurs —
-not bundled randomly at the end of a section.
+The model is instructed to place screenshots near related narration; placement accuracy remains unevaluated.
 
 ---
 
 ## Key capabilities
 
-- **Automatic language detection** — French audio → French docs, English audio → English docs
-- **Diátaxis structure** — every output has a Tutorial, How-to Guide, Reference, and Explanation section
-- **Audio/visual synchronization** — screenshots placed at the right moment in the narrative
-- **Fidelity to source** — exact terminology, button labels, and menu names preserved; nothing invented
-- **Self-contained output** — one Markdown file, images embedded inline (no broken links, no external hosting)
-- **Resilient pipeline** — automatic retry when an AI service is temporarily throttled
+- **Bilingual target** — French and English outputs are intended; language fidelity is not yet measured
+- **Diátaxis structure** — the generation prompt requests Tutorial, How-to Guide, Reference and Explanation sections
+- **Timestamped context** — intended to support relevant screenshot placement
+- **Fidelity goal** — preserve source terminology and avoid invented steps; evaluation pending
+- **Self-contained output** — available referenced frames can be embedded in Markdown
+- **Limited retry handling** — generation retries rate-limit errors; no durable recovery guarantee
 
 ---
 
 ## What makes the pipeline "smart"
 
-- **Silence-aware audio chunking** — splits narration at natural pauses, never mid-sentence or mid-word
-- **Timestamp-precision alignment** — every transcript line and every frame carries an exact `[MM:SS]` position
+- **Silence-aware audio chunking** — prefers natural pauses and falls back to fixed-duration splits
+- **Timestamp-precision alignment** — transcript segments and sampled frames use a shared rounded `[MM:SS]` timeline
 - **Tunable visual density** — configurable frame sampling rate, defaults to one frame every 5 seconds for thorough coverage
-- **Smart frame selection by the model** — skips near-duplicate or blank/transition frames, distributes illustrations throughout instead of clustering them
+- **Smart frame selection by the model** — generation instructions request representative frames; actual selection quality remains unverified
 
 ---
 
@@ -95,7 +96,7 @@ FastAPI  (Container App)
                       (job state + result)
 ```
 
-**Stateless API** — all job state lives in Blob Storage, so the backend scales to zero and survives restarts without losing work.
+**PoV execution model** — live API state is persisted in Blob Storage, but daemon-thread processing is not durable across restarts. Offline state is process-local.
 
 ---
 
@@ -117,10 +118,10 @@ FastAPI  (Container App)
 
 ## Security & cost model
 
-- **Zero plaintext secrets** — Managed Identity fetches every credential from Key Vault at runtime
+- **Secret handling design** — Key Vault references and managed identity are intended to avoid embedding service credentials in images or source
 - **No admin passwords** — container registry pulls and secret access are both RBAC-based
-- **Consumption-based pricing** — the backend scales to zero when idle; you pay per job run, not per hour
-- **EU data residency** — all resources default to `francecentral`
+- **Cost model** — consumption-oriented compute with additional service/storage charges; actual costs are unmeasured
+- **Target regions** — France Central and West Europe; GlobalStandard inference may route elsewhere. Residency is not established by this template.
 
 ---
 
@@ -128,7 +129,7 @@ FastAPI  (Container App)
 
 | Today (Proof of Value) | Production upgrade |
 |---|---|
-| One job at a time per replica | Worker queue, concurrent processing |
+| Daemon thread per accepted job; no concurrency cap | Worker queue, concurrent processing |
 | ~10 min practical video length | Azure Batch Transcription API for longer videos |
 | Open API, no authentication | Azure AD auth via Static Web Apps |
 | Uniform time-based frame sampling | Scene-change / diversity-based key-frame detection |
@@ -139,24 +140,24 @@ FastAPI  (Container App)
 ## Business value
 
 - Turns **idle video assets** (demos, trainings, recordings) into reusable, structured documentation
-- Cuts technical writing time from **hours/days to minutes** per video
-- **Consistent structure** across every document, regardless of who recorded the video
-- **Multilingual by default** — no separate translation step for French/English content
-- **Faithful to the source** — fewer review/correction cycles than generic AI writing tools
+- Potential reduction in drafting time; no measured time savings yet
+- **Consistent structure** is a design goal
+- **French/English support** is intended; quality assessment pending
+- **Source fidelity** is an evaluation goal, not a measured advantage
 
 ---
 
 ## Try it
 
-1. Upload a video
-2. Watch live progress across the 5-step pipeline in real time
-3. Get a publish-ready Markdown document — copy, download, or pull via the API
+1. Follow the credential-free quick start in README.md.
+2. Upload a harmless placeholder named demo.mp4 and observe job completion.
+3. Copy or download the clearly labeled fixed synthetic Markdown. This does not analyze the video.
 
 ---
 
 ## Next steps
 
-- Pilot with a small batch of real internal training/demo videos
+- Evaluate fictional French/English cases and non-sensitive, authorized synthetic recordings before considering a pilot
 - Validate output quality against the current documentation review process
 - Prioritize production hardening items from the upgrade path above based on pilot feedback
 

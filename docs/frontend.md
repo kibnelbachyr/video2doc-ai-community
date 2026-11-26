@@ -13,7 +13,8 @@ It is served by **Azure Static Web Apps** in production and by the FastAPI
 |------|---------|
 | `ui/index.html` | HTML shell with all markup; French language |
 | `ui/style.css` | All styles (design tokens, layout, components) |
-| `ui/app.js` | All interaction logic (upload, polling, render) |
+| `ui/app.js` | Upload, polling, preview, copy/download |
+| `ui/preview.js` | Bounded literal-text rendering of untrusted output |
 | `ui/staticwebapp.config.json` | SWA routing (all routes → `index.html`) |
 | `ui/config.js` | **Gitignored** — generated at deploy time with `window.API_BASE_URL` |
 
