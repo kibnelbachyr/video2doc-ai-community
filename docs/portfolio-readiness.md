@@ -35,4 +35,8 @@ P0–P5 have documented evidence, known limitations are explicit, and a new read
 
 ## Verified offline baseline
 
-[Initial CI run](https://github.com/kibnelbachyr/video2doc-ai-community/actions/runs/45763217620) passed five tests on Python 3.11, with Python socket connections and Blob calls guarded during tests. Dependency installation is online. This is not a real-media, LLM-quality or production-security validation. The proposed literal-text preview and filename guard require their own passing CI. Deployment workflows are manual-only.
+[Initial CI run](https://github.com/kibnelbachyr/video2doc-ai-community/actions/runs/45763217620) passed five tests on Python 3.11, with Python socket connections and Blob calls guarded during tests. Dependency installation is online. This is not a real-media, LLM-quality or production-security validation. [Hardening CI run](https://github.com/kibnelbachyr/video2doc-ai-community/actions/runs/45763474700) passed six Python tests and three Node preview tests. The preview is literal text, not browser-sanitized rich HTML. Deployment workflows are manual-only.
+
+## Media and dependency evidence increment
+
+The synthetic-media tests create a three-second local test-pattern video and sine-wave audio using FFmpeg; no customer media or model calls are involved. They check actual frame extraction, audio decoding/chunking, timestamp formatting and embedding of extracted images. They do not measure real speech recognition, image understanding, translation or documentation quality. CI installs FFmpeg and dependencies over the network, then runs the tests locally. The separate dependency-audit job resolves the API requirements in a clean virtual environment and runs pip-audit against the resolved packages. Any findings or scanner failure must be reviewed before release; a clean Python advisory scan does not cover OS, browser or infrastructure risks. Results for this increment are pending CI.
