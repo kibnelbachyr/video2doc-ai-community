@@ -1,0 +1,78 @@
+{
+  "schema_version": "1.0",
+  "scope": "Synthetic timestamped text and visual-context fixtures for generation only; no actual model output yet.",
+  "cases": [
+    {
+      "id": "EN-01",
+      "language": "en",
+      "transcript": "[00:00] Open the fictional Atlas Notes workspace.\n[00:10] Select New note, enter a title, then select Save.",
+      "visual_context": "[00:10] frame_000001.png\nCaption: Note editor with New note, Title and Save controls.",
+      "required_facts": [
+        "Open Atlas Notes workspace",
+        "Select New note",
+        "Enter a title",
+        "Select Save"
+      ],
+      "unsupported_claims": [
+        "Automatic cloud sync",
+        "Sharing permissions"
+      ],
+      "allowed_frames": [
+        "frame_000001.png"
+      ]
+    },
+    {
+      "id": "FR-01",
+      "language": "fr",
+      "transcript": "[00:00] Ouvrez le tableau de bord fictif Atlas.\n[00:12] Sélectionnez Filtrer, puis Actif et Appliquer.",
+      "visual_context": "[00:12] frame_000002.png\nLégende : menu Filtrer, option Actif, bouton Appliquer.",
+      "required_facts": [
+        "Ouvrir le tableau de bord Atlas",
+        "Sélectionner Filtrer",
+        "Choisir Actif",
+        "Sélectionner Appliquer"
+      ],
+      "unsupported_claims": [
+        "Filtres sauvegardés automatiquement",
+        "Export disponible"
+      ],
+      "allowed_frames": [
+        "frame_000002.png"
+      ]
+    },
+    {
+      "id": "EN-02",
+      "language": "en",
+      "transcript": "[00:00] Open the fictional report editor.\n[00:08] The export process is not demonstrated in this recording.",
+      "visual_context": "[00:04] frame_000003.png\nCaption: Report editor with title field; no export button visible.",
+      "required_facts": [
+        "Report editor shown",
+        "Export procedure not demonstrated"
+      ],
+      "unsupported_claims": [
+        "Specific export steps",
+        "PDF export available"
+      ],
+      "allowed_frames": [
+        "frame_000003.png"
+      ]
+    },
+    {
+      "id": "FR-02",
+      "language": "fr",
+      "transcript": "[00:00] Dans cet exemple fictif, sélectionnez Modifier pour changer le titre.\n[00:10] Le mode de sauvegarde n'est pas présenté.",
+      "visual_context": "[00:06] frame_000004.png\nLégende : zone de titre et bouton Modifier.",
+      "required_facts": [
+        "Sélectionner Modifier pour changer le titre",
+        "Mode de sauvegarde non présenté"
+      ],
+      "unsupported_claims": [
+        "Bouton Enregistrer visible",
+        "Sauvegarde automatique"
+      ],
+      "allowed_frames": [
+        "frame_000004.png"
+      ]
+    }
+  ]
+}

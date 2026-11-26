@@ -171,3 +171,9 @@ MOCK_TRANSCRIPTION=true MOCK_VISION=true MOCK_GENERATION=true \
 ## Offline mode and license
 
 All three mock flags must be true for credential-free execution. Mock output is a fixed synthetic example, not a document derived from the uploaded video. No real video or ffmpeg is needed for the mock smoke tests. Azure deployments are manual-only. This generic edition is licensed under [Apache 2.0](LICENSE). Mock output is not model-quality evidence.
+
+## Engineering evidence
+
+- [Portfolio readiness and verified CI evidence](docs/portfolio-readiness.md)
+- [ADR-001 — Execution and trust boundaries](docs/adr/001-execution-and-trust-boundaries.md)
+- [Synthetic bilingual evaluation protocol](evals/README.md) — planned live-model validation, not a reported quality score.

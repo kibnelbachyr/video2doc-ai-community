@@ -296,3 +296,7 @@ is pulled using `AcrPull` role on the same identity — no admin password.
 | Observability | Container App log stream only | App Insights + Log Analytics |
 | Data residency | `GlobalStandard` may route outside France | `DataZoneStandard` SKU in `main.bicep` |
 | LLM rate limits | Retries on `429` with increasing backoff (15/30/45/60 s); job fails after 5 attempts | Raise `openAICapacity` further, or move to a dedicated provisioned-throughput deployment |
+
+## Architecture decision record
+
+See [ADR-001 — Execution and trust boundaries](adr/001-execution-and-trust-boundaries.md) for the actual PoV job lifecycle, trade-offs, trust assumptions and remaining failure modes. The ADR distinguishes validated offline component evidence from proposed production controls.
