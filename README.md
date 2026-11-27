@@ -1,5 +1,7 @@
 # video2doc-ai Community
 
+![Video2Doc AI Community — Multimodal AI / Knowledge / Documentation](docs/assets/engineering-banner.svg)
+
 [![Offline verification](https://github.com/kibnelbachyr/video2doc-ai-community/actions/workflows/offline-ci.yml/badge.svg)](https://github.com/kibnelbachyr/video2doc-ai-community/actions/workflows/offline-ci.yml)
 [![License: Apache 2.0](https://img.shields.io/badge/license-Apache--2.0-blue.svg)](LICENSE)
 
@@ -9,9 +11,9 @@ An experimental multimodal pipeline for turning product demonstrations, training
 
 The implementation combines timestamped transcription, sampled video frames, visual captions and OCR with language-model generation. The community edition is designed to make the architecture and its trade-offs reproducible without requiring cloud credentials for the offline baseline.
 
-> **[v0.2.0 published experimental pre-release](https://github.com/kibnelbachyr/video2doc-ai-community/releases/tag/v0.2.0) · Experimental · Apache 2.0.** Offline API/CLI execution and synthetic media components are verified in CI. Live-model accuracy, multilingual fidelity, production security, performance and cost have not been validated. Keep the unauthenticated API local; do not upload sensitive recordings or expose it to the internet.
+> **[v0.2.0 published experimental pre-release](https://github.com/kibnelbachyr/video2doc-ai-community/releases/tag/v0.2.0) · Apache 2.0.** Offline API/CLI execution and synthetic media components are verified in CI. Live-model accuracy, multilingual fidelity, production security, performance and cost have not been validated. Keep the unauthenticated API local; do not upload sensitive recordings or expose it to the internet.
 
-## Quick start — no Azure credentials
+## Quickstart — no Azure credentials
 
 Prerequisite: Linux and Python 3.11 (verified in CI); other platforms are not verified against the version snapshot. Dependency installation requires internet access. FFmpeg is needed for real media processing and media tests, not the fully mocked demo.
 
@@ -42,7 +44,7 @@ The generated `output/demo.md` is a fixed, labeled fictional document containing
 ## Architecture
 
 ```mermaid
-flowchart TD
+flowchart LR
     A["Video upload / CLI"] --> B["Timestamped audio transcript"]
     A --> C["Sample video frames"]
     C --> D["Visual captions and OCR"]
@@ -50,6 +52,11 @@ flowchart TD
     D --> E
     E --> F["Embed available screenshots"]
     F --> G["Markdown output"]
+    classDef component fill:#152436,stroke:#7296b6,color:#f3f6f9;
+    classDef decision fill:#152436,stroke:#78c9c1,color:#f3f6f9,stroke-width:2px;
+    classDef endpoint fill:#243344,stroke:#9db0c4,color:#f3f6f9;
+    class A,B,C,D,E,F component;
+    class G endpoint;
 ```
 
 | Stage | Live implementation | Offline baseline |
@@ -89,9 +96,9 @@ python -m evals.run_offline --output evaluation-report.json
 
 Full details: [engineering evidence and limitations](docs/portfolio-readiness.md) · [evaluation protocol](evals/README.md) · [changelog](CHANGELOG.md).
 
-v0.2.0 adds process-local admission and retention, post-multipart upload limits, bounded media subprocesses and image embedding. These limits do not provide authentication, filesystem isolation, a durable distributed queue or end-to-end resource guarantees. Dependency pins target Linux/Python 3.11 and are not a hash-locked cross-platform build. See [API limits](docs/api.md) and [evaluation protocol](evals/README.md). The published tag is immutable; future releases require separate CI and owner approval.
+v0.2.0 adds process-local admission and retention, post-multipart upload limits, bounded media subprocesses and image embedding. These limits do not provide authentication, filesystem isolation, a durable distributed queue or end-to-end resource guarantees. Dependency pins target Linux/Python 3.11 and are not a hash-locked cross-platform build. See [API limits](docs/api.md) and [evaluation protocol](evals/README.md). Preserve the published tag unchanged; future releases require separate CI and owner approval.
 
-## Repository guide
+## Limitations and repository guide
 
 | Path | Purpose |
 | --- | --- |
