@@ -9,7 +9,7 @@ without deploying to Azure.
 
 | Tool | Version | Install |
 |------|---------|---------|
-| Python | 3.11+ | [python.org](https://python.org) / `pyenv` |
+| Python | 3.11 (Linux verified) | [python.org](https://python.org) / `pyenv` |
 | ffmpeg | any recent | `brew install ffmpeg` / `apt install ffmpeg` |
 | Docker Desktop | any | [docker.com](https://docker.com) (optional, for container testing) |
 
@@ -29,7 +29,8 @@ cd video2doc-ai-community
 python -m venv .venv
 source .venv/bin/activate          # Windows: .venv\Scripts\activate
 
-pip install -r api/requirements.txt
+python -m pip install -r requirements-linux-py311.lock
+python -m pip check
 ```
 
 Copy the environment file template:
@@ -61,7 +62,7 @@ uvicorn api.main:app --reload --port 8000
 
 # With all three mocks
 MOCK_TRANSCRIPTION=true MOCK_VISION=true MOCK_GENERATION=true \
-  uvicorn api.main:app --reload --port 8000
+  uvicorn api.main:app --host 127.0.0.1 --port 8000 --workers 1
 ```
 
 Access points:
@@ -73,7 +74,7 @@ Access points:
 | `http://localhost:8000/redoc` | ReDoc (alternative API docs) |
 | `http://localhost:8000/health` | Liveness probe |
 
-The `--reload` flag auto-reloads the server when Python files change.
+The mock server uses one worker and loopback only. It is unauthenticated; never expose it publicly. Reloads discard process-local jobs.
 
 > **Note:** `config.js` is not generated locally. The UI falls back to
 > same-origin API calls (`API_BASE = ''`), so everything works automatically.
