@@ -3,30 +3,32 @@
 [![Offline verification](https://github.com/kibnelbachyr/video2doc-ai-community/actions/workflows/offline-ci.yml/badge.svg)](https://github.com/kibnelbachyr/video2doc-ai-community/actions/workflows/offline-ci.yml)
 [![License: Apache 2.0](https://img.shields.io/badge/license-Apache--2.0-blue.svg)](LICENSE)
 
-**From recorded knowledge to structured documentation.**
+**From recorded knowledge to structured documentation.** For technical writers and engineers evaluating a video-to-Markdown workflow, start with a credential-free fictional document; use real recordings only in an authorized, separately validated environment.
 
 An experimental multimodal pipeline for turning product demonstrations, training recordings and technical walkthroughs into draft Markdown using Azure AI and the [Diátaxis](https://diataxis.fr/) documentation framework.
 
 The implementation combines timestamped transcription, sampled video frames, visual captions and OCR with language-model generation. The community edition is designed to make the architecture and its trade-offs reproducible without requiring cloud credentials for the offline baseline.
 
-> **v0.1.0 published · v0.2.0 development candidate · Experimental · Apache 2.0.** Offline API/CLI execution and synthetic media components are verified in CI. Live-model accuracy, multilingual fidelity, production security, performance and cost have not been validated. Keep the unauthenticated API local; do not upload sensitive recordings or expose it to the internet.
+> **[v0.2.0 published experimental pre-release](https://github.com/kibnelbachyr/video2doc-ai-community/releases/tag/v0.2.0) · Experimental · Apache 2.0.** Offline API/CLI execution and synthetic media components are verified in CI. Live-model accuracy, multilingual fidelity, production security, performance and cost have not been validated. Keep the unauthenticated API local; do not upload sensitive recordings or expose it to the internet.
 
 ## Quick start — no Azure credentials
 
-Prerequisite: Python 3.11 (verified in CI). Dependency installation requires internet access. FFmpeg is needed for real media processing and media tests, not the fully mocked demo.
+Prerequisite: Linux and Python 3.11 (verified in CI); other platforms are not verified against the version snapshot. Dependency installation requires internet access. FFmpeg is needed for real media processing and media tests, not the fully mocked demo.
 
 ```bash
 git clone https://github.com/kibnelbachyr/video2doc-ai-community.git
 cd video2doc-ai-community
+git checkout v0.2.0
 python -m venv .venv
 source .venv/bin/activate
-python -m pip install -r api/requirements.txt
+python -m pip install -r requirements-linux-py311.lock
+python -m pip check
 
 MOCK_TRANSCRIPTION=true MOCK_VISION=true MOCK_GENERATION=true \
   uvicorn api.main:app --host 127.0.0.1 --port 8000 --workers 1
 ```
 
-Open http://localhost:8000. Select a harmless placeholder file named `demo.mp4`, start the pipeline and download the result. The preview displays literal Markdown text rather than interpreting model output as HTML.
+Open http://localhost:8000. In another terminal run `printf 'fictional placeholder' > demo.mp4`, then select that harmless placeholder file, start the pipeline and download the result. The preview displays literal Markdown text rather than interpreting model output as HTML.
 
 Alternatively, run the CLI without any actual video file:
 
@@ -69,10 +71,10 @@ See the [architecture](docs/architecture.md) and [ADR-001](docs/adr/001-executio
 | Offline API and CLI | Credential-free smoke tests; upload denial and unknown-job handling |
 | Local media components | Generated test-pattern video and audio; real frame/audio extraction, timestamp formatting and embedding |
 | Untrusted input/output | Filename rejection; literal-text bounded preview |
-| Automated verification | Development suite: 28 Python and 3 JavaScript tests, selected static checks, pinned Linux runtime versions and separate dependency advisory audit |
+| Automated verification | Released baseline: 28 Python and 3 JavaScript tests, selected static checks, pinned Linux runtime versions and separate dependency advisory audit |
 | AI quality | Four fictional bilingual fixtures; 20 offline evaluator self-test variants; proposed human-review rubric; no live results |
 
-[Verified baseline CI](https://github.com/kibnelbachyr/video2doc-ai-community/actions/runs/45766562173) reported no known vulnerabilities in the audited Python packages at the time of the scan. This does not cover every dependency, container, operating system or application security risk.
+[Verified release CI](https://github.com/kibnelbachyr/video2doc-ai-community/actions/runs/45911493736) reported no known vulnerabilities in the audited Python packages at the time of the scan. This does not cover every dependency, container, operating system or application security risk.
 
 To run the tests locally with Python 3.11, FFmpeg and Node.js 24 available:
 
@@ -87,7 +89,7 @@ python -m evals.run_offline --output evaluation-report.json
 
 Full details: [engineering evidence and limitations](docs/portfolio-readiness.md) · [evaluation protocol](evals/README.md) · [changelog](CHANGELOG.md).
 
-Current development adds process-local admission and retention, post-multipart upload limits, bounded media subprocesses and image embedding. These limits do not provide authentication, filesystem isolation, a durable distributed queue or end-to-end resource guarantees. Dependency pins target Linux/Python 3.11 and are not a hash-locked cross-platform build. See [API limits](docs/api.md) and [evaluation protocol](evals/README.md). Public candidate CI must pass before a new release.
+v0.2.0 adds process-local admission and retention, post-multipart upload limits, bounded media subprocesses and image embedding. These limits do not provide authentication, filesystem isolation, a durable distributed queue or end-to-end resource guarantees. Dependency pins target Linux/Python 3.11 and are not a hash-locked cross-platform build. See [API limits](docs/api.md) and [evaluation protocol](evals/README.md). The published tag is immutable; future releases require separate CI and owner approval.
 
 ## Repository guide
 
