@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased — proposed v0.2.0
+## v0.2.0 — published experimental pre-release
 
 - Validate parsed uploads and canonical job IDs; return generic API failures.
 - Bound FFmpeg subprocess duration, audio/frame sampling and embedded image size; isolate CLI temporary frames.
@@ -8,6 +8,8 @@
 - Add synthetic bilingual evaluator self-tests with expected negative cases and repeatable JSON evidence.
 - Pin Linux Python 3.11 runtime package versions and add selected source checks.
 - API now returns 429 at local capacity; old mock results may be evicted. Media over configured fixed budgets is rejected. These are experimental local safeguards, not production isolation or live-model evaluation.
+
+[Release and verified main CI](https://github.com/kibnelbachyr/video2doc-ai-community/releases/tag/v0.2.0) · [CI evidence](https://github.com/kibnelbachyr/video2doc-ai-community/actions/runs/45911493736).
 
 ## v0.1.0 — Experimental Community Release
 
